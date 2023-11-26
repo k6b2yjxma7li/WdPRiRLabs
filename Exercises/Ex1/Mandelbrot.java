@@ -62,7 +62,7 @@ public class Mandelbrot {
     }
 
     public static Complex mandelbrotStep(Complex znComplex, Complex cComplex) {
-        return znComplex.times(znComplex).minus(cComplex);
+        return znComplex.times(znComplex).plus(cComplex);
     }
 
     public static int mandelbrotStepsCount(Complex cComplex) {
@@ -76,27 +76,25 @@ public class Mandelbrot {
     }
 
     public static BufferedImage getMandelbrotBufferredImage(
-        int pixelWidth, int pixelHeight,
+        int pixelsWidth, int pixelsHeight,
         Complex domainLimitLower, Complex domainLimitUpper) {
         BufferedImage mandelbrotBufferedImage = new BufferedImage(
-            pixelWidth,
-            pixelHeight,
+            pixelsWidth,
+            pixelsHeight,
             BufferedImage.TYPE_INT_ARGB
         );
 
         Complex domainRange = domainLimitUpper.minus(domainLimitLower);
-        double dx = Math.abs(domainRange.getRe())/pixelWidth;
-        double dy = Math.abs(domainRange.getIm())/pixelHeight;
-
-        System.out.printf("(dx, dy) = (%f, %f)", dx, dy);
+        double dx = Math.abs(domainRange.getRe())/pixelsWidth;
+        double dy = Math.abs(domainRange.getIm())/pixelsHeight;
 
         Complex cComplex;
         int currentSteps;
 
         Color currentPixelColor;
 
-        for ( int yPixelAddr = 0; yPixelAddr < pixelsResolution; yPixelAddr++) {
-            for ( int xPixelAddr = 0; xPixelAddr < pixelsResolution; xPixelAddr++) {
+        for ( int yPixelAddr = 0; yPixelAddr < pixelsHeight; yPixelAddr++) {
+            for ( int xPixelAddr = 0; xPixelAddr < pixelsWidth; xPixelAddr++) {
                 // System.out.printf("Pixel: (%d, %d)\r", xPixelAddr, yPixelAddr);
                 cComplex = new Complex(
                     xLimLower + xPixelAddr*dx,
