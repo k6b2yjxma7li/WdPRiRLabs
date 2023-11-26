@@ -18,9 +18,12 @@ import WdPRiRLabs.Exercises.Ex1.Complex;
  */
 public class Mandelbrot {
 
+    // Maximum magnitude during 'explosion' checks
     public static double magnitudeThreshold = 2.0;
+    // Maximum number of steps to check 'explosion' of complex number
     public static int maxSteps = 200;
 
+    // Required domain
     public static double xLimLower = -2.1;
     public static double xLimUpper = 0.6;
     public static double yLimLower = -1.2;
@@ -29,8 +32,10 @@ public class Mandelbrot {
     public static Complex domainLimitLower = new Complex(xLimLower, yLimLower);
     public static Complex domainLimitUpper = new Complex(xLimUpper, yLimUpper);
 
+    // Resolution of the image in pixels
     public static int pixelsResolution = 961;
 
+    // colorMapper parameters
     public static double defaultPixelBrightness = 1.0;
     public static double defaultPixelSaturation = 1.0;
 
