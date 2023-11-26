@@ -1,9 +1,14 @@
 package WdPRiRLabs.Exercises.Ex1;
 
 import java.lang.Math;
-
+import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.awt.Color;
+import java.awt.List;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.awt.BorderLayout;
 
 import javax.swing.ImageIcon;
@@ -12,9 +17,13 @@ import javax.swing.JLabel;
 import javax.swing.WindowConstants;
 
 import WdPRiRLabs.Exercises.Ex1.Complex;
+import WdPRiRLabs.Exercises.Ex1.Viewer;
+
+import javax.imageio.ImageIO;
+import java.io.File;
 
 /**
- * Mandelbrot
+ * Mandelbrot set generation
  */
 public class Mandelbrot {
 
@@ -33,26 +42,11 @@ public class Mandelbrot {
     public static Complex domainLimitUpper = new Complex(xLimUpper, yLimUpper);
 
     // Resolution of the image in pixels
-    public static int pixelsResolution = 961;
+    public static int pixelsResolution = 1024;
 
     // colorMapper parameters
     public static double defaultPixelBrightness = 1.0;
     public static double defaultPixelSaturation = 1.0;
-
-    public static void displayBufferedImage(BufferedImage myBufferedImage) {
-        JFrame myJFrame = null;
-        JLabel myJLabel = null;
-        myJFrame = new JFrame();
-        myJFrame.setTitle("Mandelbrot");
-        myJFrame.setSize(480, 640);
-        myJFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        myJLabel = new JLabel();
-        myJLabel.setIcon(new ImageIcon(myBufferedImage));
-        myJFrame.getContentPane().add(myJLabel, BorderLayout.CENTER);
-        myJFrame.setLocationRelativeTo(null);
-        myJFrame.pack();
-        myJFrame.setVisible(true);
-    }
 
     public static Color colorMapper(int myInt) {
         double pixelBrightness = defaultPixelBrightness;
@@ -81,52 +75,110 @@ public class Mandelbrot {
     }
 
     public static BufferedImage getMandelbrotBufferredImage(
-        int pixelsWidth, int pixelsHeight,
-        Complex domainLimitLower, Complex domainLimitUpper) {
+            int pixelsWidth, int pixelsHeight,
+            Complex domainLimitLower, Complex domainLimitUpper) {
         BufferedImage mandelbrotBufferedImage = new BufferedImage(
-            pixelsWidth,
-            pixelsHeight,
-            BufferedImage.TYPE_INT_ARGB
-        );
+                pixelsWidth,
+                pixelsHeight,
+                BufferedImage.TYPE_INT_ARGB);
 
         Complex domainRange = domainLimitUpper.minus(domainLimitLower);
-        double dx = Math.abs(domainRange.getRe())/pixelsWidth;
-        double dy = Math.abs(domainRange.getIm())/pixelsHeight;
+        double dx = Math.abs(domainRange.getRe()) / pixelsWidth;
+        double dy = Math.abs(domainRange.getIm()) / pixelsHeight;
 
         Complex cComplex;
         int currentSteps;
 
         Color currentPixelColor;
 
-        for ( int yPixelAddr = 0; yPixelAddr < pixelsHeight; yPixelAddr++) {
-            for ( int xPixelAddr = 0; xPixelAddr < pixelsWidth; xPixelAddr++) {
+        for (int yPixelAddr = 0; yPixelAddr < pixelsHeight; yPixelAddr++) {
+            for (int xPixelAddr = 0; xPixelAddr < pixelsWidth; xPixelAddr++) {
                 // System.out.printf("Pixel: (%d, %d)\r", xPixelAddr, yPixelAddr);
                 cComplex = new Complex(
-                    xLimLower + xPixelAddr*dx,
-                    yLimLower + yPixelAddr*dy
-                );
+                        xLimLower + xPixelAddr * dx,
+                        yLimLower + yPixelAddr * dy);
                 currentSteps = mandelbrotStepsCount(cComplex);
                 currentPixelColor = colorMapper(currentSteps);
                 mandelbrotBufferedImage.setRGB(
-                    xPixelAddr,
-                    yPixelAddr,
-                    currentPixelColor.getRGB()
-                );
+                        xPixelAddr,
+                        yPixelAddr,
+                        currentPixelColor.getRGB());
             }
         }
         return mandelbrotBufferedImage;
     }
 
-    // public static long[] 
-    public static void main(String[] args) {
+    public static double[] square(double[] values) {
+        double[] squared = new double[values.length];
+        for (int i = 0; i < values.length; i++) {
+            squared[i] = values[i] * values[i];
+        }
+        return squared;
+    }
+
+    public static double sum(double[] values) {
+        double sumValue = 0;
+        for (double value : values) {
+            sumValue += value;
+        }
+        return sumValue;
+    }
+
+    public static double[] singleBenchmark(int imageResolution, int populationSize) {
+        /**
+         * Returns array of doubles containing execution times in seconds
+         */
+        double[] generationTimes = new double[populationSize];
+        for (int i = 0; i < populationSize; i++) {
+            long startNanoTime = System.nanoTime();
+            getMandelbrotBufferredImage(
+                    imageResolution, imageResolution,
+                    domainLimitLower, domainLimitUpper);
+            long endNanoTime = System.nanoTime();
+            generationTimes[i] = (endNanoTime - startNanoTime) / 1.0e+9;
+        }
+        return generationTimes;
+    }
+
+    public static void main(String[] args) throws IOException {
         System.out.println("Starting Mandelbrot calculations");
-        long startNanoTime = System.nanoTime();
-        BufferedImage mandelbrotBufferedImage = getMandelbrotBufferredImage(
-            pixelsResolution, pixelsResolution,
-            domainLimitLower, domainLimitUpper
+        int populationSize = 1;
+        BufferedWriter writer = new BufferedWriter(
+            new FileWriter("./mandelbrot_seq_"+Integer.toString(populationSize)+".csv", true)
         );
-        displayBufferedImage(mandelbrotBufferedImage);
+        
+        int[] imageResolutions = {32, 64, 128, 256, 512, 1024, 2048, 4096, 8192};
+        System.out.println("Resolution\tMean\tStdDev");
+        writer.write("Resolution\tMean\tStdDev");
+        writer.newLine();
+        long startNanoTime = System.nanoTime();
+        for (int imgRes : imageResolutions) {
+            double[] generationTimes = singleBenchmark(imgRes, populationSize);
+            double mean = sum(generationTimes)/generationTimes.length;
+            double stddev = Math.sqrt(sum(square(generationTimes))/generationTimes.length - mean*mean);
+            String line = String.format("%d\t%f\t%f", imgRes, mean, stddev);
+            writer.write(line);
+            writer.newLine();
+            System.out.println(line);
+        }
         long endNanoTime = System.nanoTime();
-        System.out.printf("Image %d x %d generated in: %fs\n", pixelsResolution, pixelsResolution, (endNanoTime-startNanoTime)/1.0e+9);
+        System.out.printf("Images generated in: %fs\n", (endNanoTime-startNanoTime)/1.0e+9);
+        writer.close();
+        // Generate single images and save them
+        BufferedImage mandelbrotBufferedImage = null;
+        for (int imgRes : imageResolutions) {
+            mandelbrotBufferedImage = getMandelbrotBufferredImage(
+                imgRes, imgRes,
+                domainLimitLower, domainLimitUpper
+            );
+            ImageIO.write(
+                mandelbrotBufferedImage,
+                "png",
+                new File("mandelbrot_"+Integer.toString(imgRes)+".png")
+            );
+        }
+        // Show the last picture as a window
+        Viewer mainWindow = new Viewer(960, 960);
+        mainWindow.displayBufferedImage(mandelbrotBufferedImage);
     }
 }
