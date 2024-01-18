@@ -1,4 +1,4 @@
-package WdPRiRLabs.Exercises.Ex2;
+package WdPRiRLabs.Exercises.Ex2.Part1;
 
 import java.lang.Math;
 import java.util.concurrent.Callable;
@@ -47,6 +47,9 @@ public class Mandelbrot {
     // colorMapper parameters
     public static double defaultPixelBrightness = 1.0;
     public static double defaultPixelSaturation = 1.0;
+
+    // Threads pool settings
+    public static int poolSize = Runtime.getRuntime().availableProcessors();
 
     public static Color colorMapper(int myInt) {
         double pixelBrightness = defaultPixelBrightness;
