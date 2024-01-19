@@ -24,8 +24,10 @@ import java.io.File;
 public class Mandelbrot {
 
     public static class BufferedImageBlockRenderer implements Runnable {
-        private int[] xPixelAddresses;
-        private int[] yPixelAddresses;
+        private int xStartingPixelAddress;
+        private int yStartingPixelAddress;
+        private int blockPixelWidth;
+        private int blockPixelHeight;
         private Complex pixelSize;
         private BufferedImage renderedBufferedImage;
 
@@ -33,19 +35,28 @@ public class Mandelbrot {
 
         public BufferedImageBlockRenderer(
             BufferedImage bufferedImage,
-            int[] xPixelAddresses, int[] yPixelAddresses,
+            int xStartingPixelAddress, int yStartingPixelAddress,
+            int blockPixelWidth, int blockPixelHeight,
             Complex pixelSize
         ) {
             this.renderedBufferedImage = bufferedImage;
-            this.xPixelAddresses = xPixelAddresses;
-            this.yPixelAddresses = yPixelAddresses;
+            this.xStartingPixelAddress = xStartingPixelAddress;
+            this.yStartingPixelAddress = yStartingPixelAddress;
+            this.blockPixelWidth = blockPixelWidth;
+            this.blockPixelHeight = blockPixelHeight;
             this.pixelSize = pixelSize;
+
+
         }
 
         @Override
         public void run() {
-            for (int xPixelAddr : this.xPixelAddresses) {
-                for (int yPixelAddr : this.yPixelAddresses) {
+            int xPixelAddr;
+            int yPixelAddr;
+            for (int xRelativePixelAddr = 0; xRelativePixelAddr < this.blockPixelWidth; xRelativePixelAddr++) {
+                for (int yRelativePixelAddr = 0; yRelativePixelAddr < this.blockPixelHeight; yRelativePixelAddr++) {
+                    xPixelAddr = xRelativePixelAddr+this.xStartingPixelAddress;
+                    yPixelAddr = yRelativePixelAddr+this.yStartingPixelAddress;
                     this.renderedBufferedImage.setRGB(
                         xPixelAddr,
                         yPixelAddr,
@@ -150,39 +161,36 @@ public class Mandelbrot {
             Math.abs(domainRange.getIm()) / pixelsHeight
         );
 
-        // separating pixels into jobs sequentially
-        int jobsCount = pixelsWidth*pixelsWidth/jobPixelsSize;
-        int xPixelAddr = 0;
-        int yPixelAddr = 0;
+        int jobsCount = pixelsWidth*pixelsHeight/jobPixelsSize;
 
-        for (int jobNo = 0; jobNo < jobsCount; jobNo++) {
-            int[] xPixelAddresses = new int[jobPixelsSize];
-            int[] yPixelAddresses = new int[jobPixelsSize];
+        int jobsCountHorizontal;
+        int jobsCountVertical;
 
-            int jobPixelCounter = 0;
-
-            while (yPixelAddr <= pixelsHeight) {
-                while (xPixelAddr <= pixelsWidth) {
-                    if (jobPixelCounter == jobPixelsSize) {break;}
-                    xPixelAddresses[jobPixelCounter] = xPixelAddr;
-                    yPixelAddresses[jobPixelCounter] = yPixelAddr;
-                    xPixelAddr++;
-                    jobPixelCounter++;
-                }
-                if (jobPixelCounter == jobPixelsSize) {break;}
-                yPixelAddr++;
-            }
-
-            Runnable bufferedImageBlockRenderer = new BufferedImageBlockRenderer(
-                mandelbrotBufferedImage,
-                xPixelAddresses, yPixelAddresses,
-                pixelSize
-            );
-
-            executorServiceThreadPool.submit(bufferedImageBlockRenderer);
+        int jobPixelWidth = 1;
+        int jobPixelHeight = 1;
+        // separating domain into fixed-sized jobs
+        if (jobPixelsSize >= pixelsHeight) {
+            jobPixelWidth = pixelsWidth/jobsCount;
+            jobPixelHeight = pixelsHeight;
+            jobsCountHorizontal = pixelsWidth/jobPixelWidth;
+            jobsCountVertical = 1;
+        } else {
+            jobPixelWidth = 1;
+            jobPixelHeight = jobPixelsSize;
+            jobsCountVertical = pixelsHeight/jobPixelsSize;
+            jobsCountHorizontal = jobsCount/jobsCountVertical;
         }
 
-
+        for (int jobNoHor = 0; jobNoHor < jobsCountHorizontal; jobNoHor++) {
+            for (int jobNoVer = 0; jobNoVer < jobsCountVertical; jobNoVer++) {
+                Runnable bufferedImageBlockRenderer = new BufferedImageBlockRenderer(
+                    mandelbrotBufferedImage,
+                    jobNoHor*jobPixelWidth, jobNoVer*jobPixelHeight,
+                    jobPixelWidth, jobPixelHeight, pixelSize
+                );
+                executorServiceThreadPool.submit(bufferedImageBlockRenderer);
+            }
+        }
         executorServiceThreadPool.shutdown();
         executorServiceThreadPool.awaitTermination(1, TimeUnit.DAYS);
 
@@ -270,7 +278,7 @@ public class Mandelbrot {
     public static void main(String[] args) throws IOException {
         String classPath = "./WdPRiRLabs/Exercises/Ex2/Part2/";
         int populationSize = 100;
-        boolean timingIncludePool = false;
+        boolean timingIncludePool = true;
         System.out.println("Starting Mandelbrot calculations");
         
         int[] threadsCounts = {processorsCount-2, processorsCount, processorsCount+2};
