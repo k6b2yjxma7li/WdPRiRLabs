@@ -1,4 +1,4 @@
-package WdPRiRLabs.Exercises.Ex2;
+package WdPRiRLabs.Exercises.Ex2.Part2;
 
 public class Complex {
         private double real = 0.0;

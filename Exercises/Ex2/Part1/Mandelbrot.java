@@ -7,7 +7,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import WdPRiRLabs.Exercises.Ex2.Complex;
+import WdPRiRLabs.Exercises.Ex2.Part1.Complex;
 // import WdPRiRLabs.Exercises.Ex1.Viewer; //TODO: not needed for this part of the project
 
 import javax.imageio.ImageIO;
@@ -231,9 +231,9 @@ public class Mandelbrot {
     public static void main(String[] args) throws IOException {
         String classPath = "./WdPRiRLabs/Exercises/Ex2/Part1/";
         System.out.println("Starting Mandelbrot calculations");
-        int populationSize = 100;
+        int populationSize = 1;
         BufferedWriter writer = new BufferedWriter(
-            new FileWriter(classPath+"mandelbrot_par_"+Integer.toString(populationSize)+".csv", true)
+            new FileWriter(classPath+"mandelbrot_par1_"+Integer.toString(populationSize)+".csv", true)
         );
         
         int[] imageResolutions = {32, 64, 128, 256, 512, 1024, 2048, 4096, 8192};
