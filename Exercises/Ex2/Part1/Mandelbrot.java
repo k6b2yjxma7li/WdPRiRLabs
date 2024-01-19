@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import WdPRiRLabs.Exercises.Ex2.Complex;
-import WdPRiRLabs.Exercises.Ex1.Viewer; //TODO: not needed for this part of the project
+// import WdPRiRLabs.Exercises.Ex1.Viewer; //TODO: not needed for this part of the project
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -253,14 +253,14 @@ public class Mandelbrot {
         long endNanoTime = System.nanoTime();
         System.out.printf("Images generated in: %fs\n", (endNanoTime-startNanoTime)/1.0e+9);
         writer.close();
-        // Show the last picture as a window
-        Viewer mainWindow = new Viewer(960, 960);
-        BufferedImage mandelbrotBufferedImage;
-        try {
-            mandelbrotBufferedImage = getMandelbrotBufferredImage(imageResolutions[0], imageResolutions[0], domainLimitLower, domainLimitUpper);
-            mainWindow.displayBufferedImage(mandelbrotBufferedImage);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // // Show the last picture as a window
+        // Viewer mainWindow = new Viewer(960, 960);
+        // BufferedImage mandelbrotBufferedImage;
+        // try {
+        //     mandelbrotBufferedImage = getMandelbrotBufferredImage(imageResolutions[0], imageResolutions[0], domainLimitLower, domainLimitUpper);
+        //     mainWindow.displayBufferedImage(mandelbrotBufferedImage);
+        // } catch (InterruptedException e) {
+        //     e.printStackTrace();
+        // }
     }
 }
