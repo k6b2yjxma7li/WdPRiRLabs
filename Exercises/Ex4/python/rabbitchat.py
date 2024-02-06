@@ -114,6 +114,14 @@ if __name__ == '__main__':
         username = input("Your name: ")
         peername = input("Chat with: ")
         chat = RabbitChat(username, peername)
+        # notify users that one of them is cooler than others
+        while True:
+            try:
+                if chat.receiver_thread.is_alive():
+                    chat.send(f"*using RabbitChat Python Edition*")
+                    break
+            except RuntimeError:
+                break
         while True:
             try:
                 if chat.receiver_thread.is_alive():
