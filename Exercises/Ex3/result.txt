@@ -1,0 +1,4 @@
+Sequential download of 10 png images finished in: 0:00:24.482344
+Process-pooled download of 10 png images finished in: 0:00:10.089475
+Sequential download and blur of 10 png images finished in: 0:01:07.222863
+Process-pooled and blurred download of 10 png images finished in: 0:00:14.224447
